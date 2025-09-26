@@ -9,6 +9,9 @@ import { db, auth, storage } from './firebase';
 import { ref, onValue, push, set } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -72,6 +75,22 @@ const App: React.FC = () => {
     await set(newCharacterRef, newCharacter);
   };
 
+  const handleGenerateDescription = async (name: string): Promise<string> => {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `為一位名叫「${name}」的學生產生一句簡短、有創意、有趣的個人描述，用於班級介紹網站。語氣應該要友善且正面，長度約15-20字。`,
+    });
+    return response.text;
+  };
+
+  const handleGenerateHobby = async (name: string): Promise<string> => {
+     const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `為一位名叫「${name}」的學生產生幾個有趣或特別的興趣/專長。請提供 2-3 個並用頓號「、」分隔。`,
+    });
+    return response.text;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
       <Header isLoggedIn={!!user} onAuthButtonClick={handleAuthButtonClick} />
@@ -84,7 +103,11 @@ const App: React.FC = () => {
       <main className="container mx-auto px-6 py-8">
         {user && (
           <div className="mb-8">
-            <AdminPanel onAddCharacter={handleAddCharacter} />
+            <AdminPanel 
+              onAddCharacter={handleAddCharacter} 
+              onGenerateDescription={handleGenerateDescription}
+              onGenerateHobby={handleGenerateHobby}
+            />
           </div>
         )}
         <CharacterGrid characters={characters} />

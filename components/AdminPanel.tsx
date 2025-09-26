@@ -9,9 +9,11 @@ export interface NewCharacterData {
 
 interface AdminPanelProps {
   onAddCharacter: (character: NewCharacterData) => Promise<void>;
+  onGenerateDescription: (name: string) => Promise<string>;
+  onGenerateHobby: (name: string) => Promise<string>;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onAddCharacter }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ onAddCharacter, onGenerateDescription, onGenerateHobby }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [hobby, setHobby] = useState('');
@@ -19,6 +21,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onAddCharacter }) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [isGeneratingHobby, setIsGeneratingHobby] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -64,6 +68,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onAddCharacter }) => {
     }
   };
 
+  const handleGenerateDesc = async () => {
+    if (!name.trim()) {
+        setError('請先輸入姓名以產生描述。');
+        return;
+    }
+    setError('');
+    setIsGeneratingDesc(true);
+    try {
+        const generatedDesc = await onGenerateDescription(name);
+        setDescription(generatedDesc);
+    } catch (err) {
+        setError('AI 描述產生失敗，請檢查 API Key 並稍後再試。');
+        console.error(err);
+    } finally {
+        setIsGeneratingDesc(false);
+    }
+  };
+
+  const handleGenerateHobbyClick = async () => {
+      if (!name.trim()) {
+          setError('請先輸入姓名以產生興趣。');
+          return;
+      }
+      setError('');
+      setIsGeneratingHobby(true);
+      try {
+          const generatedHobby = await onGenerateHobby(name);
+          setHobby(generatedHobby);
+      } catch (err) {
+          setError('AI 興趣產生失敗，請檢查 API Key 並稍後再試。');
+          console.error(err);
+      } finally {
+          setIsGeneratingHobby(false);
+      }
+  };
+
+
   return (
     <div className="bg-blue-50 dark:bg-gray-800/50 p-6 rounded-lg shadow-inner border border-blue-200 dark:border-gray-700">
       <h2 className="text-2xl font-bold mb-4 text-gray-700 dark:text-gray-200">新增人物</h2>
@@ -82,25 +123,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onAddCharacter }) => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">描述</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">描述</label>
+                      <button type="button" onClick={handleGenerateDesc} disabled={isGeneratingDesc || !name.trim()} className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:hover:bg-purple-900/80 px-2 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                          {isGeneratingDesc ? '產生中...' : '✨ AI 產生'}
+                      </button>
+                    </div>
                   <textarea
                     id="description"
                     rows={2}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     placeholder="一句話形容這個人..."
                   />
                 </div>
                 <div>
-                    <label htmlFor="hobby" className="block text-sm font-medium text-gray-700 dark:text-gray-300">興趣 / 專長</label>
+                    <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="hobby" className="block text-sm font-medium text-gray-700 dark:text-gray-300">興趣 / 專長</label>
+                        <button type="button" onClick={handleGenerateHobbyClick} disabled={isGeneratingHobby || !name.trim()} className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:hover:bg-purple-900/80 px-2 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isGeneratingHobby ? '產生中...' : '✨ AI 產生'}
+                        </button>
+                    </div>
                     <input
                       type="text"
                       id="hobby"
                       value={hobby}
                       onChange={(e) => setHobby(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="例如：打程式、彈吉他"
+                      className="block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="例如：寫程式、彈吉他"
                     />
                 </div>
             </div>
