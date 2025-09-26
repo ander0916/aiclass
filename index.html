@@ -2,11 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>104的30公分們</title>
     <script src="https://cdn.tailwindcss.com"></script>
-  <script type="importmap">
+    <script>
+      // This is a workaround for running without a build process.
+      // In a real app, use environment variables provided by a build tool or server.
+      // ❗️ IMPORTANT: This key is visible to the public. For a real application,
+      // you must secure this key using a backend or environment variables.
+      window.process = {
+        env: {
+          API_KEY: "AIzaSyCLH78qFt9yxQC-EmmMOsm8Nw1k9lV7CCM"
+        }
+      };
+    </script>
+    <script type="importmap">
 {
   "imports": {
     "@google/genai": "https://esm.run/@google/genai",
@@ -24,6 +35,6 @@
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
